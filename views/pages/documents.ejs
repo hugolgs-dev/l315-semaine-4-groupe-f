@@ -1,0 +1,25 @@
+<% title = "Documents" %>
+<h1 class="text-center mb-4">Liste des documents</h1>
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+    <tr>
+        <th scope="col">Rang</th>
+        <th scope="col">Titre</th>
+        <th scope="col">Auteur</th>
+        <th scope="col">Type de document</th>
+        <th scope="col">Nombre de réservations</th>
+    </tr>
+    </thead>
+    <tbody>
+    <% documents.forEach(doc => { %>
+        <tr>
+            <td><%= doc.fields.rang %></td>
+            <td><%= doc.fields.titre_avec_lien_vers_le_catalogue %></td>
+            <td><%= doc.fields.auteur || 'N/A' %></td>
+            <td><%= doc.fields.type_de_document || 'N/A' %></td>
+            <td><%= doc.fields.nombre_de_reservations %></td>
+        </tr>
+    <% }); %>
+    </tbody>
+</table>
+

@@ -8,14 +8,16 @@ const router = express.Router();
 
 /* page d'accueil */
 router.get('/', (req, res) => {
-    res.render('home');
+    res.render('home', {
+        title: 'Page d\'accueil',
+    });
 })
 
 /* page d'affichage des documents */
 router.get('/documents', async (req, res) => {
     try {
         const documents = await Document.find({});
-        res.render('documents', { documents });
+        res.render('pages/documents', { documents });
     } catch (error) {
         res.status(500).send('Erreur lors de la récupération des documents');
     }
