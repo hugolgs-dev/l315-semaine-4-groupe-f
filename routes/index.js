@@ -4,12 +4,31 @@ const mongoose = require('mongoose');
 /* Les modèles */
 const Document = require('../models/Document');
 
-const router = express.Router();
+/* Import authentication controller */
+const { signUp, login, logout } = require('../Controllers/AuthController');
 
+const router = express.Router();
+/* Authentication Routes */
+router.post('/signup', signUp);
+router.post('/login', login);
+router.post('/logout', logout);
 /* page d'accueil */
 router.get('/', (req, res) => {
     res.render('home', {
         title: 'Page d\'accueil',
+    });
+});
+
+// Routes d'authentification supplémentaires
+router.get('/signup', (req, res) => {
+    res.render('auth/inscription', {
+        title: 'Page d\'inscription',
+    });
+});
+
+router.get('/login', (req, res) => {
+    res.render('auth/login', {
+        title: 'Page de connexion',
     });
 });
 
@@ -33,7 +52,6 @@ router.get('/documents', async (req, res) => {
         res.status(500).send('Erreur lors de la récupération des documents');
     }
 });
-
 
 // Route pour emprunter un document
 router.post('/emprunter/:id', async (req, res) => {
@@ -59,7 +77,6 @@ router.post('/emprunter/:id', async (req, res) => {
         res.status(500).send('Erreur lors de l\'emprunt du document');
     }
 });
-
 
 // Route pour rendre un document (supprimer l'emprunteur)
 router.post('/rendre/:documentId', async (req, res) => {
