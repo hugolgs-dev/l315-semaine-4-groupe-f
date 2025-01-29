@@ -11,12 +11,17 @@ const router = express.Router();
 /* Authentication Routes */
 router.post('/signup', signUp);
 router.post('/login', login);
-router.post('/logout', logout);
+router.get('/logout', logout);
+
+
 /* page d'accueil */
 router.get('/', (req, res) => {
+    console.log(req)
+    const isLoggedIn = req.cookies.token ? true : false;
     res.render('home', {
         title: 'Page d\'accueil',
-    });
+        isLoggedIn: isLoggedIn,  // Pass the logged-in status to the view
+      });
 });
 
 router.get('/signup', (req, res) => {

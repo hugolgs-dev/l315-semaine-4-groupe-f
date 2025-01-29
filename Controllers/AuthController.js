@@ -96,6 +96,10 @@ exports.login = async (req, res) => {
 
 // Logout Function
 exports.logout = (req, res) => {
-  res.clearCookie('token');
-  res.send('Logged out successfully');
+  res.clearCookie('token');  // Clear the JWT token cookie
+  res.render('home',{
+    title:"home",
+    isLoggedIn:false
+
+  })
 };
