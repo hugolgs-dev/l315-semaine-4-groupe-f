@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {mongo} = require("mongoose");
+const { mongo } = require("mongoose");
 
 const documentSchema = new mongoose.Schema({
     datasetid: String,
@@ -13,6 +13,7 @@ const documentSchema = new mongoose.Schema({
         record_timestamp: String,
         FIELD9: String,
     },
-})
+    emprunteur: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }  // Ajout du champ emprunteur
+});
 
 module.exports = mongoose.model('Document', documentSchema);
