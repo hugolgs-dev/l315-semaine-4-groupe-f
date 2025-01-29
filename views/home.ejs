@@ -1,12 +1,12 @@
 <% title = "Page d'accueil" %>
 <% if (!isLoggedIn) { %>
-  <button><a href="/signup">s'inscrire</a></button>
-  <button><a href="/login">se connecter</a></button>
+  <a href="/signup" class="btn btn-success m-2">S'inscrire</a>
+  <a href="/login" class="btn btn-primary m-2">Se connecter</a>
 <% } else { %>
-  <button><a href="/logout">se déconnecter</a></button>
+  <a href="/logout" class="btn btn-danger m-2">Se déconnecter</a>
 <% } %>
-<section class="text-center">
+<section class="text-center mt-4">
   <h1 class="display-4">Bienvenue sur notre application !</h1>
   <p class="lead">Cette application affiche une liste de documents à partir de MongoDB.</p>
-  <a href="/documents" class="btn btn-primary btn-lg">Voir les documents</a>
+  <a href="/documents" class="btn btn-primary btn-lg mt-3">Voir les documents</a>
 </section>

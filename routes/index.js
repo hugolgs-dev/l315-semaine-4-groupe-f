@@ -20,7 +20,7 @@ router.get('/', (req, res) => {
     const isLoggedIn = req.cookies.token ? true : false;
     res.render('home', {
         title: 'Page d\'accueil',
-        isLoggedIn: isLoggedIn,  // Pass the logged-in status to the view
+        isLoggedIn: isLoggedIn, 
       });
 });
 
