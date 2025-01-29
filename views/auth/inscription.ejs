@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-</head>
-<body>
+
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-4">
                 <h1 class="text-center">Register</h1>
+                    <!-- Show alert message if available -->
+                    <% if (typeof message !== 'undefined') { %>
+                        <div class="alert alert-<%= messageType %>">
+                            <%= message %>
+                        </div>
+                    <% } %>
                 <form action="/signup" method="POST" class="mt-4">
                     <div class="mb-3">
                         <label for="name" class="form-label">Name:</label>
@@ -35,5 +32,4 @@
     </div>
     <!-- Bootstrap JS (optional if you need interactive components) -->
     <script src="/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+
