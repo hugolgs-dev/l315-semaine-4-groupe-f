@@ -1,30 +1,35 @@
 const express = require('express');
+const router = express.Router();
+const cookieParser = require('cookie-parser');
+const authenticate = require('../middleware/authenticate'); 
+router.use(cookieParser());
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
-/* Les modèles */
+/* les modèles */
 const Document = require('../models/Document');
 
-/* Import authentication controller */
+/* import du contrôleur d'authentification */
 const { signUp, login, logout } = require('../Controllers/AuthController');
 
-const router = express.Router();
-/* Authentication Routes */
-router.post('/signup', signUp);
-router.post('/login', login);
-router.get('/logout', logout);
-
+/* routes d'authentification */
+router.post('/signup', signUp);  // route pour l'inscription
+router.post('/login', login);    // route pour la connexion
+router.get('/logout', (req, res) => {
+    res.clearCookie('token');  // efface le cookie contenant le token
+    res.redirect('/');         // redirige vers la page d'accueil après la déconnexion
+});
 
 /* page d'accueil */
 router.get('/', (req, res) => {
-    console.log(req)
-    const isLoggedIn = req.cookies.token ? true : false;
+    const isLoggedIn = req.cookies.token ? true : false; // vérifie si le token existe dans les cookies
     res.render('home', {
         title: 'Page d\'accueil',
-        isLoggedIn: isLoggedIn,  // Pass the logged-in status to the view
-      });
+        isLoggedIn: isLoggedIn // ajoute la variable isLoggedIn à l'objet passé à la vue
+    });
 });
 
-// Routes d'authentification supplémentaires
+// routes d'authentification supplémentaires
 router.get('/signup', (req, res) => {
     res.render('auth/inscription', {
         title: 'Page d\'inscription',
@@ -37,74 +42,79 @@ router.get('/login', (req, res) => {
     });
 });
 
-// Route pour afficher les documents
-router.get('/documents', async (req, res) => {
-    try {
-        // Simuler un utilisateur connecté pour les tests
-        const userId = '6799fa4cf55e9b254a11dbc7'; // À remplacer par l'ID de l'utilisateur connecté
+// route pour afficher les documents
+router.get('/documents', authenticate, async (req, res) => {
+  try {
+    const allDocuments = await Document.find({});  // récupère tous les documents
 
-        // Récupérer tous les documents depuis la base de données
-        const allDocuments = await Document.find({});
+    const documentsDisponibles = allDocuments.filter(doc => !doc.emprunteur);
+    const documentsEmpruntes = allDocuments.filter(doc => doc.emprunteur && doc.emprunteur.toString() === req.user.id.toString());
 
-        // Séparer les documents disponibles et ceux empruntés par l'utilisateur
-        const documentsDisponibles = allDocuments.filter(doc => !doc.emprunteur);
-        const documentsEmpruntes = allDocuments.filter(doc => doc.emprunteur?.toString() === userId);
-
-        // Rendre la vue avec les documents triés et l'ID de l'utilisateur
-        res.render('pages/documents', { documentsDisponibles, documentsEmpruntes, userId });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Erreur lors de la récupération des documents');
-    }
+    // passe les documents à la vue, et ajoute userId à la vue si l'utilisateur est connecté
+    res.render('pages/documents', {
+      documentsDisponibles,
+      documentsEmpruntes,
+      userId: req.user ? req.user.id : null  // ajoute userId seulement si l'utilisateur est authentifié
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des documents:', error);
+    res.status(500).send('Erreur lors de la récupération des documents');
+  }
 });
 
-// Route pour emprunter un document
-router.post('/emprunter/:id', async (req, res) => {
+// route pour emprunter un document
+router.post('/emprunter/:id', authenticate, async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;  // récupère l'ID de l'utilisateur connecté
+
     try {
-        const userId = '6799fa4cf55e9b254a11dbc7'; // Simuler un utilisateur connecté ici, à remplacer par l'ID réel
-        const documentId = req.params.id; // Corrigé pour correspondre à la route
+        const document = await Document.findById(id);
 
-        // Mettre à jour le document en ajoutant l'ID de l'utilisateur dans le champ emprunteur
-        const updatedDocument = await Document.findByIdAndUpdate(
-            documentId,
-            { emprunteur: userId },
-            { new: true }
-        );
-
-        if (!updatedDocument) {
-            return res.status(404).send('Document non trouvé');
+        if (document.emprunteur) {
+            return res.status(400).send('Ce document est déjà emprunté.');  // vérifie si le document est déjà emprunté
         }
 
-        // Rediriger vers la page des documents pour afficher la mise à jour
-        res.redirect('/documents');
+        document.emprunteur = userId;
+        await document.save();
+
+        res.redirect('/documents');  // redirige vers la page des documents
     } catch (error) {
-        console.error(error);
+        console.error('Erreur lors de l\'emprunt du document:', error);
         res.status(500).send('Erreur lors de l\'emprunt du document');
     }
 });
 
-// Route pour rendre un document (supprimer l'emprunteur)
-router.post('/rendre/:documentId', async (req, res) => {
+// route pour rendre un document
+router.post('/rendre/:recordid', authenticate, async (req, res) => {
+    const { recordid } = req.params;  // récupère le recordid du document depuis l'URL
+    const userId = req.user.id;  // récupère l'ID de l'utilisateur connecté
+
     try {
-        const documentId = req.params.documentId; // recordid
-        const userId = '6799fa4cf55e9b254a11dbc7'; // Simuler un utilisateur connecté
+        // recherche du document par recordid (non par _id)
+        const document = await Document.findOne({ recordid: recordid });
 
-        // Utilisation de recordid pour trouver le document et supprimer l'emprunteur
-        const updatedDocument = await Document.findOneAndUpdate(
-            { recordid: documentId, emprunteur: userId }, // Vérifie qu'il y a un emprunteur avec le même userId
-            { $unset: { emprunteur: 1 } }, // Supprimer le champ emprunteur
-            { new: true } // Retourner le document mis à jour
-        );
-
-        if (!updatedDocument) {
-            return res.status(404).send('Document non trouvé ou l\'utilisateur n\'a pas emprunté ce document');
+        if (!document) {
+            console.log('Document non trouvé');
+            return res.status(404).send('Document non trouvé');
         }
 
-        // Rediriger vers la page des documents après mise à jour
+        // vérifie que l'utilisateur est bien l'emprunteur du document
+        if (document.emprunteur.toString() !== userId) {
+            console.log('L\'utilisateur n\'a pas emprunté ce document');
+            return res.status(400).send('Vous ne pouvez pas rendre un document que vous n\'avez pas emprunté');
+        }
+
+        // supprime l'emprunteur du document pour marquer qu'il est rendu
+        document.emprunteur = undefined;  // supprime le champ emprunteur
+        const updatedDocument = await document.save();
+
+        console.log('Document après mise à jour:', updatedDocument);
+
+        // redirige vers la page des documents après mise à jour
         res.redirect('/documents');
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Erreur lors de la suppression de l\'emprunteur');
+        console.error('Erreur lors du retour du document:', error);
+        res.status(500).send('Erreur lors du retour du document: ' + error.message);
     }
 });
 
