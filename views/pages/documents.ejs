@@ -1,25 +1,68 @@
 <% title = "Documents" %>
 <h1 class="text-center mb-4">Liste des documents</h1>
+
+<!-- Documents DISPONIBLES -->
+<h2 class="text-center">📚 Documents disponibles à l'emprunt</h2>
 <table class="table table-striped table-bordered">
     <thead class="table-dark">
-    <tr>
-        <th scope="col">Rang</th>
-        <th scope="col">Titre</th>
-        <th scope="col">Auteur</th>
-        <th scope="col">Type de document</th>
-        <th scope="col">Nombre de réservations</th>
-    </tr>
+        <tr>
+            <th scope="col">Rang</th>
+            <th scope="col">Titre</th>
+            <th scope="col">Auteur</th>
+            <th scope="col">Type de document</th>
+            <th scope="col">Nombre de réservations</th>
+            <% if (userId) { %> <th scope="col">Action</th> <% } %>
+        </tr>
     </thead>
     <tbody>
-    <% documents.forEach(doc => { %>
-        <tr>
-            <td><%= doc.fields.rang %></td>
-            <td><%= doc.fields.titre_avec_lien_vers_le_catalogue %></td>
-            <td><%= doc.fields.auteur || 'N/A' %></td>
-            <td><%= doc.fields.type_de_document || 'N/A' %></td>
-            <td><%= doc.fields.nombre_de_reservations %></td>
-        </tr>
-    <% }); %>
+        <% documentsDisponibles.forEach(doc => { %>
+            <tr>
+                <td><%= doc.fields.rang %></td>
+                <td><%= doc.fields.titre_avec_lien_vers_le_catalogue %></td>
+                <td><%= doc.fields.auteur || 'N/A' %></td>
+                <td><%= doc.fields.type_de_document || 'N/A' %></td>
+                <td><%= doc.fields.nombre_de_reservations %></td>
+                <% if (userId) { %>
+                    <td>
+                        <form action="/emprunter/<%= doc._id %>" method="POST">
+                            <button class="btn btn-success" type="submit">Emprunter</button>
+                        </form>
+                    </td>
+                <% } %>
+            </tr>
+        <% }); %>
     </tbody>
 </table>
 
+<!-- Documents EMPRUNTÉS -->
+<% if (userId && documentsEmpruntes.length > 0) { %>
+    <h2 class="text-center">🔖 Documents empruntés</h2>
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Rang</th>
+                <th scope="col">Titre</th>
+                <th scope="col">Auteur</th>
+                <th scope="col">Type de document</th>
+                <th scope="col">Nombre de réservations</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% documentsEmpruntes.forEach(doc => { %>
+                <tr>
+                    <td><%= doc.fields.rang %></td>
+                    <td><%= doc.fields.titre_avec_lien_vers_le_catalogue %></td>
+                    <td><%= doc.fields.auteur || 'N/A' %></td>
+                    <td><%= doc.fields.type_de_document || 'N/A' %></td>
+                    <td><%= doc.fields.nombre_de_reservations %></td>
+                    <td>
+                        <form action="/rendre/<%= doc.recordid %>" method="POST">
+                            <button class="btn btn-warning" type="submit">Rendre</button>
+                        </form>
+                    </td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+<% } %>
