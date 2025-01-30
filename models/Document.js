@@ -13,7 +13,7 @@ const documentSchema = new mongoose.Schema({
         record_timestamp: String,
         FIELD9: String,
     },
-    emprunteur: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }  // Ajout du champ emprunteur
+    emprunteur: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }  ,// ajout du champ emprunteur
 });
 
 module.exports = mongoose.model('Document', documentSchema);
