@@ -48,7 +48,8 @@ router.get('/documents', authenticate, async (req, res) => {
     const allDocuments = await Document.find({});  // récupère tous les documents
 
     const documentsDisponibles = allDocuments.filter(doc => !doc.emprunteur);
-    const documentsEmpruntes = allDocuments.filter(doc => doc.emprunteur && doc.emprunteur.toString() === req.user.id.toString());
+    const documentsEmpruntes = req.user ? allDocuments.filter(doc => doc.emprunteur && doc.emprunteur.toString() === req.user.id.toString()) : [] ;
+    // [] pour avoir une array vide plutôt qu'une erreur TypeUndefined si utilisateur non connecté, comme ça les documents se chargent quand même
 
     // passe les documents à la vue, et ajoute userId à la vue si l'utilisateur est connecté
     res.render('pages/documents', {
