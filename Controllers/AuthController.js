@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // SignUp Function
+// SignUp Function
 exports.signUp = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -30,9 +31,21 @@ exports.signUp = async (req, res) => {
     // Save user to MongoDB
     await newUser.save();
 
-    res.status(201).render('pages/documents', {
-      title: 'documents', // Pass title
-  
+    // Générer le token JWT
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    // Sauvegarder le token dans les cookies
+    res.cookie('token', token, { httpOnly: true });
+
+    // Ajoute l'utilisateur à req.user pour l'utiliser dans les futures requêtes
+    req.user = newUser;
+
+    // Rediriger vers la page d'accueil avec isLoggedIn à true
+    res.render('home', {
+      title: 'Documents',
+      isLoggedIn: true, // L'utilisateur est connecté après l'inscription
     });
   } catch (err) {
     console.error(err);
@@ -47,51 +60,55 @@ exports.signUp = async (req, res) => {
 
 
 
+
 // Login Function
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find user by email
+    // Trouver l'utilisateur par email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).render('auth/login', {
-       title: 'connexion', // Pass title
-       message: 'Invalid credentials',
-       messageType: 'danger',
-     });      
+        title: 'Connexion',
+        message: 'Invalid credentials',
+        messageType: 'danger',
+      });
     }
 
-    // Compare passwords
+    // Comparer les mots de passe
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).render('auth/login', {
-       title: 'connexion', // Pass title
-       message: 'Invalid credentials',
-       messageType: 'danger',
-     });
+        title: 'Connexion',
+        message: 'Invalid credentials',
+        messageType: 'danger',
+      });
     }
 
-    // Generate JWT token
+    // Générer le token JWT
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
 
-    res.cookie('token', token, { httpOnly: true })
+    // Sauvegarder le token dans les cookies
+    res.cookie('token', token, { httpOnly: true });
 
-    res.status(201).render('pages/documents', {
-      title: 'documents', // Pass title
-    });
+    // Ajoute l'utilisateur à req.user pour l'utiliser dans les futures requêtes
+    req.user = user;
 
-
+    // Rediriger vers la page d'accueil
+    res.redirect('/'); // Redirection vers la page d'accueil
   } catch (err) {
     return res.status(500).render('auth/login', {
-      title: 'connexion', // Pass title
+      title: 'Connexion',
       message: 'Server error',
       messageType: 'danger',
     });
   }
 };
+
+
 
 
 // Logout Function
