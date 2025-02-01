@@ -30,7 +30,3 @@ npm run watch
 ```
 
 Je pense que c'est tout ce dont vous avez besoin pour démarrer.
-
-## Tour d'horizon des principaux fichiers
-
-J'ai mis des commentaires dans les fichiers concernés pour + de détails.
